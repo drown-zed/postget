@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Quick start with dhtmlxGrid</title>
+    <link rel="STYLESHEET" type="text/css" href="input.css">
+    <link rel="STYLESHEET" type="text/css" href="./codebase/dhtmlxgrid.css">
+    <script src="./codebase/dhtmlxgrid.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+</head>
+<body>
+		<div id="content" style="overflow:hidden; width: 1100px; margin-left: auto; margin-right: auto; padding-top: 25px;">
+			<div align="center" style="margin-left: auto; margin-right: auto;">
+			<b>URL:</b> <input type="text" id="url" style="width:500px;">
+			</div>
+			<div id="left" style="float:left; width:450px;">
+				<form action="">
+					<table>
+						<tr>
+							<td><b>Variable Name:</b></td>
+							<td><b>Value:</b></td>
+							<td><b>Number?</b></td>
+						</tr>
+						<tr>
+							<td><input type="text" name="varName"></td>
+							<td><input type="text" name="varValue"></td>
+							<td><input type="checkbox" name="isNumber" value="yes"></td>
+						</tr>
+					</table>
+					
+					<input type="button" value="Add" onclick="addRow()">
+					<input type="button" value="Remove selected" onclick="removeRow()">
+				</form>
+				<br>
+
+				<div id="gridbox" style="width:400px; height:150px;"></div>
+				<br>
+				<input type="button" value="POST" onclick="doPost()">
+				<input type="button" value="GET" onclick="doGet()">
+			</div>
+
+			<div id="right" style="float:left; width:450px; margin-left: 25px;">
+				<textarea id="returnedtext" rows="18" cols="50" wrap="hard" style="resize: none;"></textarea>
+			</div>
+		</div>
+	
+    <script>
+    //
+
+	    function IsJson(str) {
+		    try {
+		        JSON.parse(str);
+		    } catch (e) {
+		        return false;
+		    }
+		    return true;
+		}
+
+    	function addRow()
+    	{
+    		var form=document.forms[0];
+
+    		var name=form.elements["varName"].value;
+    		var value=form.elements["varValue"].value;
+    		if(name=="" || value=="")
+    		{
+    			alert("Variable name and value fields must be filled");
+    		}
+    		else 
+    		{
+    			if(!mygrid.doesRowExist(name))
+    			{
+	 	    		if(form.elements["isNumber"].checked)
+		    		{
+
+						mygrid.addRow(name,name+",,"+value);
+		    		}
+		    		else 
+		    		{
+						mygrid.addRow(name,name+","+value+",");
+		    		}    
+		    		form.elements["varName"].value="";
+		    		form.elements["varValue"].value="";
+		    		form.elements["isNumber"].checked=false;   				
+    			}
+    			else 
+    			{
+    				alert ("Variable already exists");
+    			}
+
+
+    		}
+
+    	}
+
+    	function removeRow()
+    	{
+    		var rId=mygrid.getSelectedRowId();
+    		if(rId!=null)
+    		{
+    			mygrid.deleteRow(rId);
+    		}
+    		else 
+    		{
+    			alert("Row must be selected");
+    		}
+    		
+    	}
+
+    	function doPost()
+    	{
+    		var url= document.getElementById("url").value;
+    		var tempObject={}
+
+    		mygrid.forEachRow(function(id){
+				//your code here 
+				//id - row's id
+				if(mygrid.cellById(id, 2).getValue()!="")
+				{
+					tempObject[id]=parseFloat(mygrid.cellById(id, 2).getValue());
+				}
+				else 
+				{
+					tempObject[id]=mygrid.cellById(id, 1).getValue()
+				}
+				
+			});
+
+			
+
+
+    		if(url!=null && url!="")
+    		{
+	            $.post(url, tempObject,function(data)
+	                {
+	                	var p=data;
+	                	if (!IsJson(p))
+	                	{
+	                		document.getElementById("returnedtext").value=data;
+	                	}
+	                	else 
+	                	{
+	                		document.getElementById("returnedtext").value=JSON.stringify(JSON.parse(p), null, 4);
+	                	}
+	                	
+	                } ) 
+    		}
+    		else 
+    		{
+    			alert("URL must not be empty")
+    		}
+
+    	}
+
+    	function doGet()
+    	{
+
+    	}
+        //here you will place your JavaScript code
+        mygrid = new dhtmlXGridObject('gridbox');
+
+
+        mygrid.setImagePath("./codebase/imgs/");          //the path to images required by grid 
+        mygrid.setSkin("dhx_skyblue");
+        mygrid.setHeader("Variable name,String Value,Number Value");//the headers of columns  
+        mygrid.setInitWidths("*,*,*");          //the widths of columns  
+        mygrid.setColAlign("left,left,left");       //the alignment of columns   
+        mygrid.setColTypes("ed,ed,ed");                //the types of columns  
+        mygrid.setColSorting("str,str,int");          //the sorting types   
+        mygrid.init();      //finishes initialization and renders the grid on the page
+
+    </script>
+</body>
+</html>
